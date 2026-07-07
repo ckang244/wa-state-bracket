@@ -1,0 +1,12 @@
+{
+  "version": "0.0.1",
+  "autoPort": false,
+  "configurations": [
+    {
+      "name": "wa-state-bracket-static",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": ["-m", "http.server", "8811", "--directory", "/Users/chris/code/wa-state-bracket"],
+      "port": 8811
+    }
+  ]
+}
