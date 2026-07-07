@@ -553,7 +553,9 @@ function renderBracket(){
 
   const wide = window.innerWidth >= 820;
   // Mobile cards are a touch taller so the footer (time · field) isn't cramped.
-  const CW = wide?190:164, CH = wide?92:104;
+  // Widened from the D9 app's 190/164 so longer team names (e.g. "Bellevue
+  // National (D9)", "Richland National (D12)") don't truncate.
+  const CW = wide?222:196, CH = wide?92:104;
   const COL_GAP = wide?22:18, ROW_GAP = wide?14:9;
   const COL_W = CW + COL_GAP;
   const PAD_L = 14, PAD_T = 6, HDR_H = 40, SEC_GAP = 34, PAD_B = 28;
