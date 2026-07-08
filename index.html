@@ -490,7 +490,11 @@ function teamNameHTML(t,id){
   const name=tname(t,id);
   if(!name)return null;
   const url=teamLink(t,id);
-  return url?`<a class="team-link" href="${url}" target="_blank" rel="noopener" title="Open ${name} on GameChanger">${name}</a>`:name;
+  // No target="_blank" here on purpose: a top-level navigation is what lets iOS/
+  // Android hand off to the GameChanger app via universal/app links when it's
+  // installed; opening in a new tab often skips that handoff and just loads the
+  // web page instead.
+  return url?`<a class="team-link" href="${url}" rel="noopener" title="Open ${name} on GameChanger">${name}</a>`:name;
 }
 function mapsUrl(q){return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(q)}`;}
 function fieldLabel(code){
