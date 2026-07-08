@@ -306,20 +306,24 @@ const TOURNAMENTS = [
   teams:{1:'West Seattle (D7)',2:'Mill Creek (D1)',3:'Ridgefield (D6)',4:'Sound View (D10)',5:'Camas (D4)',6:'Liberty Lake (D13)',
          7:'Bellevue National (D9)',8:'Walla Walla (D5)',9:'Richland National (D12)',10:'Northeast Seattle (D8)',
          11:'Gig Harbor (D2)',12:'Anacortes (D11)',13:'Capitol American (D3)'},
-  // GameChanger team pages, where we have them on file (https://web.gc.com/teams/{hash}/).
+  // GameChanger team hashes (https://web.gc.com/teams/{hash}/). Rendered as
+  // .../schedule — GameChanger's apple-app-site-association only registers
+  // universal-link handoff to their app for specific sub-paths (/live,
+  // /schedule, /team, /players/*/stats, etc.), NOT the bare team page, so
+  // linking to the bare page never opens the app even with the app installed.
   teamLinks:{
-    1:'https://web.gc.com/teams/c954ZPhOaAGC/',   // West Seattle (D7)
-    2:'https://web.gc.com/teams/sGm6E8Y0bpOO/',   // Mill Creek (D1)
-    3:'https://web.gc.com/teams/LOFHntCL048O/',   // Ridgefield (D6)
-    4:'https://web.gc.com/teams/Zdu9f14nfvZL/',   // Sound View (D10)
-    5:'https://web.gc.com/teams/ml1Kj1lzNuqt/',   // Camas (D4)
-    6:'https://web.gc.com/teams/wfs4Z5wZmpVJ/',   // Liberty Lake (D13)
-    8:'https://web.gc.com/teams/PYvc0sOVKHGp/',   // Walla Walla (D5)
-    9:'https://web.gc.com/teams/OVCyFeDpUyji/',   // Richland National (D12)
-    10:'https://web.gc.com/teams/4cGfFhW7ufol/',  // Northeast Seattle (D8)
-    11:'https://web.gc.com/teams/RYmg6G0zgRSZ/',  // Gig Harbor (D2)
-    12:'https://web.gc.com/teams/4ggsaQLkom57/',  // Anacortes (D11)
-    13:'https://web.gc.com/teams/urwKEB58iXq7/',  // Capitol American (D3)
+    1:'c954ZPhOaAGC',   // West Seattle (D7)
+    2:'sGm6E8Y0bpOO',   // Mill Creek (D1)
+    3:'LOFHntCL048O',   // Ridgefield (D6)
+    4:'Zdu9f14nfvZL',   // Sound View (D10)
+    5:'ml1Kj1lzNuqt',   // Camas (D4)
+    6:'wfs4Z5wZmpVJ',   // Liberty Lake (D13)
+    8:'PYvc0sOVKHGp',   // Walla Walla (D5)
+    9:'OVCyFeDpUyji',   // Richland National (D12)
+    10:'4cGfFhW7ufol',  // Northeast Seattle (D8)
+    11:'RYmg6G0zgRSZ',  // Gig Harbor (D2)
+    12:'4ggsaQLkom57',  // Anacortes (D11)
+    13:'urwKEB58iXq7',  // Capitol American (D3)
   },
   dateCols:['7/11','7/12','7/13','7/14','7/15','7/16','7/17','7/18'],
   wByDate:{'7/11':[1,2,3,4,5],'7/12':[6,7,8,9],'7/14':[15,16],'7/16':[19]},
@@ -483,8 +487,13 @@ function timeSortValue(value){
 let todayDateValue=localDateValue();
 
 function tname(t,id){return id?(t.teams[id]||`T${id}`):null;}
-// GameChanger team page link, if we have one on file for this seed.
-function teamLink(t,id){return id?((t.teamLinks||{})[id]||null):null;}
+// GameChanger team page link, if we have one on file for this seed. Points at
+// /schedule (not the bare team page) since that's a path GameChanger's app
+// actually registers for universal-link handoff — see the note by teamLinks.
+function teamLink(t,id){
+  const hash=id?(t.teamLinks||{})[id]:null;
+  return hash?`https://web.gc.com/teams/${hash}/schedule`:null;
+}
 // Team name, wrapped in a link to its GameChanger page when we have one.
 function teamNameHTML(t,id){
   const name=tname(t,id);
