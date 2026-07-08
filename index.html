@@ -121,6 +121,8 @@ body.admin .admin-only{display:block!important;}
 .tr.fol{background:var(--yellow-d);}
 .tn{flex:1;font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--text);}
 .tn.tbd{color:var(--muted);font-style:italic;font-weight:400;opacity:.7;}
+.team-link{color:inherit;text-decoration:none;border-bottom:1px dotted var(--blue);}
+.team-link:hover{color:var(--blue);}
 .tn.fd{color:var(--muted);font-weight:500;font-style:normal;display:flex;align-items:center;}
 .fk{display:inline-block;font-size:9px;font-weight:700;line-height:1.4;padding:0 3px;border-radius:3px;margin-right:4px;}
 .fkw{background:var(--blue-t);color:var(--blue);}
@@ -301,9 +303,24 @@ const TOURNAMENTS = [
     {name:'Lynndale Park', addr:'Lynndale Park, 18927 72nd Ave W, Lynnwood'},
     {name:'Mukilteo Complex', addr:'Mukilteo Complex, 11928 Beverly Park Road, Everett'},
   ],
-  teams:{1:'D7 (TBD)',2:'Mill Creek (D1)',3:'Ridgefield (D6)',4:'Sound View (D10)',5:'Camas (D4)',6:'Liberty Lake (D13)',
+  teams:{1:'West Seattle (D7)',2:'Mill Creek (D1)',3:'Ridgefield (D6)',4:'Sound View (D10)',5:'Camas (D4)',6:'Liberty Lake (D13)',
          7:'Bellevue National (D9)',8:'Walla Walla (D5)',9:'Richland National (D12)',10:'Northeast Seattle (D8)',
-         11:'Gig Harbor (D2)',12:'D11 (TBD)',13:'Capitol American (D3)'},
+         11:'Gig Harbor (D2)',12:'Anacortes (D11)',13:'Capitol American (D3)'},
+  // GameChanger team pages, where we have them on file (https://web.gc.com/teams/{hash}/).
+  teamLinks:{
+    1:'https://web.gc.com/teams/c954ZPhOaAGC/',   // West Seattle (D7)
+    2:'https://web.gc.com/teams/sGm6E8Y0bpOO/',   // Mill Creek (D1)
+    3:'https://web.gc.com/teams/LOFHntCL048O/',   // Ridgefield (D6)
+    4:'https://web.gc.com/teams/Zdu9f14nfvZL/',   // Sound View (D10)
+    5:'https://web.gc.com/teams/ml1Kj1lzNuqt/',   // Camas (D4)
+    6:'https://web.gc.com/teams/wfs4Z5wZmpVJ/',   // Liberty Lake (D13)
+    8:'https://web.gc.com/teams/PYvc0sOVKHGp/',   // Walla Walla (D5)
+    9:'https://web.gc.com/teams/OVCyFeDpUyji/',   // Richland National (D12)
+    10:'https://web.gc.com/teams/4cGfFhW7ufol/',  // Northeast Seattle (D8)
+    11:'https://web.gc.com/teams/RYmg6G0zgRSZ/',  // Gig Harbor (D2)
+    12:'https://web.gc.com/teams/4ggsaQLkom57/',  // Anacortes (D11)
+    13:'https://web.gc.com/teams/urwKEB58iXq7/',  // Capitol American (D3)
+  },
   dateCols:['7/11','7/12','7/13','7/14','7/15','7/16','7/17','7/18'],
   wByDate:{'7/11':[1,2,3,4,5],'7/12':[6,7,8,9],'7/14':[15,16],'7/16':[19]},
   lByDate:{'7/12':[10],'7/13':[11,12,13,14],'7/14':[17,18],'7/15':[20,21],'7/16':[22],'7/17':[23]},
@@ -466,6 +483,15 @@ function timeSortValue(value){
 let todayDateValue=localDateValue();
 
 function tname(t,id){return id?(t.teams[id]||`T${id}`):null;}
+// GameChanger team page link, if we have one on file for this seed.
+function teamLink(t,id){return id?((t.teamLinks||{})[id]||null):null;}
+// Team name, wrapped in a link to its GameChanger page when we have one.
+function teamNameHTML(t,id){
+  const name=tname(t,id);
+  if(!name)return null;
+  const url=teamLink(t,id);
+  return url?`<a class="team-link" href="${url}" target="_blank" rel="noopener" title="Open ${name} on GameChanger">${name}</a>`:name;
+}
 function mapsUrl(q){return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(q)}`;}
 function fieldLabel(code){
   if(!code)return '';
@@ -587,8 +613,8 @@ function renderBracket(){
     if(adv.wg&&adv.ws){(feedLabel[adv.wg]=feedLabel[adv.wg]||{})[adv.ws]={k:'W',g:+src};}
     if(adv.lg&&adv.ls){(feedLabel[adv.lg]=feedLabel[adv.lg]||{})[adv.ls]={k:'L',g:+src};}
   }
-  function slotHTML(g,slot,team){
-    if(team)return `<div class="tn">${team}</div>`;
+  function slotHTML(g,slot,teamId){
+    if(teamId)return `<div class="tn">${teamNameHTML(t,teamId)}</div>`;
     const f=feedLabel[g]&&feedLabel[g][slot];
     if(!f)return `<div class="tn tbd">TBD</div>`;
     return `<div class="tn fd"><span class="fk fk${f.k.toLowerCase()}">${f.k}</span>G${f.g}</div>`;
@@ -698,7 +724,6 @@ function renderBracket(){
     const{x,y}=pos.get(g);
     const d=gd(t.id,g);
     const sc=sched[g]||{};
-    const t1=tname(t,d.t1),t2=tname(t,d.t2);
     const w1=d.w&&d.w===d.t1,w2=d.w&&d.w===d.t2;
     const hl=fset.has(g);
     const fid=followTeams[t.id];
@@ -710,12 +735,12 @@ function renderBracket(){
       <div class="gc-hd">${typ==='f'?`<span class="typ t${typ}">Final</span> `:''}${typ==='f'?gameLabel(t,g,typ).replace(/^Final /,''):gameLabel(t,g,typ)}</div>
       <div class="tr${w1?' win':''}${ht1?' fol':''}">
         ${w1?'<div class="wd"></div>':'<div class="nd"></div>'}
-        ${slotHTML(g,'t1',t1)}
+        ${slotHTML(g,'t1',d.t1)}
         <div class="sc${w1?' w':''}">${d.s1!=null?d.s1:''}</div>
       </div>
       <div class="tr${w2?' win':''}${ht2?' fol':''}">
         ${w2?'<div class="wd"></div>':'<div class="nd"></div>'}
-        ${slotHTML(g,'t2',t2)}
+        ${slotHTML(g,'t2',d.t2)}
         <div class="sc${w2?' w':''}">${d.s2!=null?d.s2:''}</div>
       </div>
       <div class="gc-ft">${sc.t||''} ${sc.f?'· '+fieldLink(t,sc):''}</div>
@@ -727,7 +752,7 @@ function renderBracket(){
   // champion banner
   const champ=championId(t);
   document.getElementById('champ-display').innerHTML=champ
-    ?`<div class="champ"><div class="champ-lbl">2026 WA State Champion · ${t.div}</div><div class="champ-name">${tname(t,champ)}</div></div>`
+    ?`<div class="champ"><div class="champ-lbl">2026 WA State Champion · ${t.div}</div><div class="champ-name">${teamNameHTML(t,champ)}</div></div>`
     :'';
 }
 
@@ -747,7 +772,7 @@ function renderSchedule(){
     html+=`<div class="day-group${isToday?' today':''}"${isToday?' data-today="1"':''} style="margin-bottom:16px"><div class="day-h">${label}</div>`;
     games.sort((a,b)=>a.g-b.g).forEach(s=>{
       const d2=gd(t.id,s.g);
-      const t1=tname(t,d2.t1)||'TBD',t2=tname(t,d2.t2)||'TBD';
+      const t1=teamNameHTML(t,d2.t1)||'TBD',t2=teamNameHTML(t,d2.t2)||'TBD';
       const hl=fset.has(s.g);
       const skipped=ifNeededSkipped(t,s.g);
       const has=d2.s1!=null;
@@ -785,7 +810,7 @@ function renderTodayGames(){
   games.sort((a,b)=>timeSortValue(a.s.t)-timeSortValue(b.s.t)||TOURNAMENT_ORDER.indexOf(a.t.id)-TOURNAMENT_ORDER.indexOf(b.t.id)||a.s.g-b.s.g);
   const cards=games.map(({t,s})=>{
     const d=gd(t.id,s.g);
-    const t1=tname(t,d.t1)||'TBD',t2=tname(t,d.t2)||'TBD';
+    const t1=teamNameHTML(t,d.t1)||'TBD',t2=teamNameHTML(t,d.t2)||'TBD';
     const w1=d.w&&d.w===d.t1,w2=d.w&&d.w===d.t2;
     return `<div class="score-card${d.w?' done':''}" onclick="goToGame(event,'${t.id}',${s.g})" title="Open this game in the bracket">
       <div class="score-top">
@@ -1168,7 +1193,7 @@ function renderFollowBanner(){
   const t=curT();
   const fid=followTeams[t.id];
   if(!fid){el.innerHTML='';return;}
-  const name=tname(t,fid);
+  const name=teamNameHTML(t,fid);
   const sched={}; t.schedule.forEach(s=>sched[s.g]=s);
   const colIndex={}; t.dateCols.forEach((d,i)=>colIndex[d]=i);
   let next=null;
@@ -1187,7 +1212,7 @@ function renderFollowBanner(){
     el.innerHTML=`<div class="follow-banner static"><span class="fb-lbl">Following</span><span class="fb-team">${name}</span><span class="fb-meta">${msg}</span></div>`;
     return;
   }
-  const opp=next.d.t1===fid?tname(t,next.d.t2):tname(t,next.d.t1);
+  const opp=next.d.t1===fid?teamNameHTML(t,next.d.t2):teamNameHTML(t,next.d.t1);
   const meta=`${DAYLABELS[next.s.d]||next.s.d} · ${next.s.t}${next.s.f?' · '+(next.s.field||fieldLabel(next.s.f)):''}`;
   el.innerHTML=`<div class="follow-banner" onclick="goToGame(event,'${t.id}',${next.g})" title="Jump to this game">
     <span class="fb-lbl">Next up</span>
